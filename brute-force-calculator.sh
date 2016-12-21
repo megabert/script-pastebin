@@ -54,11 +54,11 @@ function format_time {
 echo -e "\nMax. compute time of brute force testing at Speed of $SPEED tests per Second\n"
 
 for SET in "${SETS[@]}" ;do
-	local EXPANDED="$(expand_charset "$SET")"
+	EXPANDED="$(expand_charset "$SET")"
 	echo -e "\tCharset: ${#EXPANDED} Characters: $SET"
 	echo 
 	for((PW_LENGTH=${PW_LEN[0]};$PW_LENGTH<=${PW_LEN[1]};PW_LENGTH++)) ;do
-		local TIME="$(format_time $(calc_time "$SPEED" "$(get_possibilities "$PW_LENGTH" "${#EXPANDED}")"))"
+		TIME="$(format_time $(calc_time "$SPEED" "$(get_possibilities "$PW_LENGTH" "${#EXPANDED}")"))"
 		set $TIME
 		printf "\t\tPassword length: %2s - Time: %9s %s\n" "$PW_LENGTH" "$1" "$2"
 	done
