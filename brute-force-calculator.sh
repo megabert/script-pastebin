@@ -28,8 +28,12 @@ function get_possibilities 	{ echo $(($2**$1)); }					# $1 = pw_length, $2 = cou
 function calc_time 		{ bc <<<"scale=1;$2/$1;scale=0;$2/$1"; }		# $1 = calc_speed, $2 = nr_possibilities
 
 function format_time {
+
+	# generate human readably time from seconds
+
 	local SECS=$1
 	local SECS_INT=$2
+
 	local INT=(1 60 3600 86400 604800 2592000 31536000)
 	local INT_NAMES=(second minute hour day week month year)
 	
@@ -44,6 +48,8 @@ function format_time {
 
 	echo "$(bc <<<"scale=1;$SECS/${INT[-1]}") ${INT_NAMES[-1]}s"
 }
+
+# ---------- MAIN PROGRAM STARTS HERE -------------------
 
 echo -e "\nMax. compute time of brute force testing at Speed of $SPEED tests per Second\n"
 
