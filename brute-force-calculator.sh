@@ -23,7 +23,7 @@ SETS=(
 	"a-zA-Z0-9!._/\"§$%&()=?*+#':,;^°~{}[]\\|-"
 	)
 
-function expand_charset 	{ perl -pe 's/(.)\-(.)/join("",$1..$2)/ge' <<<"$1"; }	# $1 = charset
+function expand_charset 	{ perl -pe 's/(.)-(.)/join("",$1..$2)/ge' <<<"$1"; }	# $1 = charset
 function get_possibilities 	{ echo $(($2**$1)); }					# $1 = pw_length, $2 = count_chars
 function calc_time 		{ bc <<<"scale=1;$2/$1;scale=0;$2/$1"; }		# $1 = calc_speed, $2 = nr_possibilities
 
