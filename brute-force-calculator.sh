@@ -29,7 +29,7 @@ function calc_time 		{ bc <<<"scale=1;$2/$1;scale=0;$2/$1"; }		# $1 = calc_speed
 
 function format_time {
 
-	# generate human readably time from seconds
+	# generate human readable time from seconds
 
 	local SECS=$1
 	local SECS_INT=$2
