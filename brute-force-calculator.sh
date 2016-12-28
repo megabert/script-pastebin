@@ -12,7 +12,7 @@
 SPEED=10000
 
 # PW_LEN Min + Max
-PW_LEN=(6 12)
+PW_LEN=(6 14)
 
 # character sets: quote correctly!
 SETS=(
@@ -38,7 +38,9 @@ function format_time {
 	local INT=(1 60 3600 86400 604800 2592000 31536000)
 	local INT_NAMES=(second minute hour day week month year)
 	
-	[ $SECS_INT == 0 ] && echo "0$SECS seconds" && return
+	[ "$SECS_INT" == "0" -a "$SECS" != "0" ] && echo "0$SECS seconds" && return
+	[ "$SECS_INT" == "0" -a "$SECS" == "0" ] && echo "$SECS seconds"  && return
+
 
 	for((i=1;$i<${#INT[*]};i++)) ; do
 		if [ $SECS_INT -lt ${INT[$(($i))]} ] ; then
