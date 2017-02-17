@@ -1,8 +1,10 @@
 #!/bin/bash
 
 #
-#	check
+#	check available RAM on the server and initiate maintenance if too less free memory is available
 #
+#	The script does nothing unless you create the file (for name see LOW_MEMORY_INFO_FILE Variable below)
+#	with a number interpreted es MB size of minimum free memory required. 
 #
 
   MAINTENANCE_SCRIPT=/usr/local/bin/xenserver-system-maintenance
