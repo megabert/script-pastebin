@@ -19,7 +19,9 @@ rm -rf /usr/share/doc
 # clear the caches, linux should normally do that as memory is needed
 echo 3 > /proc/sys/vm/drop_caches
 
-# restart the XenServer Toolstack
+# restart the XenServer Toolstack. That lockfile is used by xe-toolstack-restart
+# if the lockfile is present, have a look if xe-toolstack-restart is really running
+#
 if [ -f /dev/shm/xe_toolstack_restart.lock ] ; then
         if pgrep /opt/xensource/bin/xe-toolstack-restart | grep -q . ; then
                 echo "not using xe-toolstack-restart. an instance is running"
