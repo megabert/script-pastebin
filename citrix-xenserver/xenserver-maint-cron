@@ -1,0 +1,10 @@
+
+#
+#	XenServer maintenance Scripts
+#
+
+# Clean up memory cache/files regularly
+0 4 * * 0       root /usr/local/bin/xenserver-system-maintenance
+
+# check if too less RAM is available and initiate xenserver-system-maintenance if required
+*/15 * * * *    root /usr/local/bin/xenserver-check-mem
