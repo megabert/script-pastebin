@@ -1,0 +1,295 @@
+#!/usr/bin/perl
+#
+#
+$BENNO_USERADMIN::VERSION = '2.1.0';
+
+use strict;
+use Getopt::Std;
+use DBI;
+use Digest::MD5;
+
+my $dbfile  = '/var/lib/benno-web/bennoweb.sqlite';
+my $ROLE    = 'USER';
+
+our(%opts);
+getopts('hlvC:a:c:d:e:n:p:s:', \%opts);
+
+my $help        = $opts{'h'};
+my $list_users  = $opts{'l'};
+
+my $add_user    = $opts{'a'};
+my $change_user = $opts{'c'};
+my $delete_user = $opts{'d'};
+my $show_user   = $opts{'s'};
+
+my $password    = $opts{'p'};
+my $uid         = $opts{'u'};
+my $name        = $opts{'n'};
+my $email       = $opts{'e'};
+
+my $container   = $opts{'C'};
+
+my $version     = $opts{'v'};
+
+$version      && print_version();
+
+my $DBH = db_connect($dbfile);
+
+$list_users   && list_users(); 
+$show_user    && show_user($show_user);
+$add_user     && add_user($add_user,$password,$name,$email,$container);
+$change_user  && change_user($change_user,$password,$name,$email,$container);
+$delete_user  && delete_user($delete_user);
+
+print_help();
+
+### SUBS #######################################################################
+# list_users
+sub list_users
+{
+    my $sql = 'SELECT id FROM user';
+
+    my $sth = $DBH->prepare($sql);
+    my $rv  = $sth->execute;
+    while (my @row = $sth->fetchrow_array) {
+        print "$row[0]\n";
+    }
+    exit;
+}
+
+
+# show_users
+sub show_user
+{
+    my $uid = shift;
+    my @user = fetch_user($uid); 
+    ($#user == 4) or error_exit('User not found.');
+
+    print "Userid:    $user[0]\n";
+    print "Name:      $user[1]\n";
+    print "Container: $user[3]\n";
+    print "E-Mail:    ";
+    my $adresslist;
+    foreach my $address (fetch_adresses($uid)) {
+        $adresslist .= $address.', ';
+    }
+    $adresslist =~ s/, $//;
+    print "$adresslist\n";
+
+    exit 0;
+}
+
+
+# add_user
+sub add_user
+{
+    my $uid       = shift;
+    my $pass      = shift;
+    my $name      = shift;
+    my $email     = shift;
+    my $container = shift || 'BennoContainer';
+
+    # check if user exists
+    my @user = fetch_user($uid); 
+    ($#user == 4) && error_exit('User alredy exists.');
+    (!$email)     && error_exit('No email address / filter for user given.');
+
+    # first, insert user
+    my $sql = 'INSERT INTO user (id,archive,role) VALUES (?,?,?)';
+    my $rows = $DBH->do($sql,undef,$uid,$container,$ROLE) or error_exit($DBH->errstr);
+  
+    $pass   && update_password($uid,$pass);
+    $name   && update_name($uid,$name);
+    $email  && update_email($uid,$email);
+
+    exit 0;
+}
+
+
+# change_user
+sub change_user
+{
+    my $uid   = shift;
+    my $pass  = shift;
+    my $name  = shift;
+    my $email = shift;
+    my $container = shift;
+
+    # check if user exists
+    my @user = fetch_user($uid); 
+    ($#user == 4) || error_exit('User does not exist.');
+
+    $pass   && update_password($uid,$pass);
+    $name   && update_name($uid,$name);
+    $email  && update_email($uid,$email);
+    $container && update_container($uid,$container);
+
+    exit 0;
+}
+
+
+# delete_user
+sub delete_user
+{
+    my $uid  = shift;
+
+    # check if user exists
+    my @user = fetch_user($uid); 
+    ($#user == 4) || error_exit('User does not exist.');
+
+    # first, insert user
+    my $sql = 'DELETE FROM user WHERE id=?';
+    my $rows = $DBH->do($sql,undef,$uid) or error_exit($DBH->errstr);
+
+    $sql = 'DELETE FROM address WHERE id=?';
+    $rows = $DBH->do($sql,undef,$uid) or error_exit($DBH->errstr);
+
+    exit 0;
+}
+
+
+# update_password
+sub update_password
+{
+    my $uid  = shift;
+    my $pass = shift;
+
+    my $ctx = Digest::MD5->new;
+    $ctx->add($pass);
+
+    my $sql = 'UPDATE user SET password=? WHERE id=?';
+    my $rows = $DBH->do($sql,undef,$ctx->hexdigest,$uid) or error_exit($DBH->errstr);
+}
+
+
+# update_name
+sub update_name
+{
+    my $uid  = shift;
+    my $name = shift;
+
+    my $sql = 'UPDATE user SET name=? WHERE id=?';
+    my $rows = $DBH->do($sql,undef,$name,$uid) or error_exit($DBH->errstr);
+}
+
+
+# update_email
+sub update_email
+{
+    my $uid  = shift;
+    my $email = shift;
+    my $sql;
+
+    my @addresslist = split(/,/,$email);
+
+    local $DBH->{RaiseError} = 0;
+    local $DBH->{PrintError} = 0;
+
+    $DBH->begin_work;       # start transaction
+    $sql = 'DELETE FROM address WHERE id=?';
+    my $rows = $DBH->do($sql,undef,$uid) or error_exit($DBH->errstr);
+
+    $sql = 'INSERT INTO address (id,address) VALUES(?,?)';
+    my $sth = $DBH->prepare($sql);
+    foreach my $address (@addresslist) {
+        $address =~ s/\s//g;
+        my $rv  = $sth->execute($uid,$address);
+    }
+    $DBH->commit;       # end transaction
+}
+
+
+# update_container
+sub update_container
+{
+    my $uid       = shift;
+    my $container = shift;
+
+    my $sql = 'UPDATE user SET archive=? WHERE id=?';
+    my $rows = $DBH->do($sql,undef,$container,$uid) or error_exit($DBH->errstr);
+}
+
+
+
+# fetch_user
+sub fetch_user
+{
+    my $uid = shift;
+
+    my $sql = 'SELECT * FROM user WHERE id = ?';
+
+    my $sth = $DBH->prepare($sql);
+    my $rv  = $sth->execute($uid);
+    my @user = $sth->fetchrow_array;
+
+    return @user;
+}
+
+
+# fetch_adresses
+sub fetch_adresses
+{
+    my $uid = shift;
+
+    my @adresses;
+
+    my $sql = 'SELECT address FROM address WHERE id = ?';
+    my $sth = $DBH->prepare($sql);
+    my $rv  = $sth->execute($uid);
+    while (my @row = $sth->fetchrow_array) {
+        push @adresses,$row[0];
+    }
+
+    return @adresses;
+}
+
+
+# db_connect
+sub db_connect
+{
+    my $dbfile = shift;
+
+    my $DBH = DBI->connect("dbi:SQLite:dbname=$dbfile","","");
+
+    return $DBH;
+
+}
+
+# error_exit
+sub error_exit
+{
+    my $err = shift;
+    print STDERR "$err\n";
+    exit 1;
+}
+
+# print_version
+sub print_version
+{
+    print "benno-useradmin version $BENNO_USERADMIN::VERSION\n";
+    exit 0;
+}
+
+# print_help
+sub print_help
+{
+    print "$0 [-h] [-l] [-u|-d|-s|-a|-c <uid>] [-p <password>] [-n <name>] [-e <email1,email2, ...>]\n";
+    print "\n";
+    print "  -l                 list all users\n";
+    print "  -u <uid>           login uid of the user\n";
+    print "  -d <uid>           delete user\n";
+    print "  -s <uid>           show userdata\n";
+    print "  -a <uid>           add user\n";
+    print "  -c <uid>           change user (data given in additional options)\n";
+    print "  -p <password>      password of the user\n";
+    print "  -n <name>          display name of the user\n";
+    print "  -e <email,email>   comma separated list of email addresses ('' deletes all)\n";
+    print "  -C <container>     container name (default BennoContainer)\n";
+    print "  -h                 this help\n";
+    print "  -v                 print version number\n";
+    print "\n";
+
+    exit 0;
+}
+
+
