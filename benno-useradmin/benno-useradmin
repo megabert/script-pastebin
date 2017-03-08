@@ -12,24 +12,25 @@ my $dbfile  = '/var/lib/benno-web/bennoweb.sqlite';
 my $ROLE    = 'USER';
 
 our(%opts);
-getopts('hlvC:a:c:d:e:n:p:s:', \%opts);
+getopts('hlvC:a:c:d:e:n:p:s:H:', \%opts);
 
-my $help        = $opts{'h'};
-my $list_users  = $opts{'l'};
+my $help            = $opts{'h'};
+my $list_users      = $opts{'l'};
 
-my $add_user    = $opts{'a'};
-my $change_user = $opts{'c'};
-my $delete_user = $opts{'d'};
-my $show_user   = $opts{'s'};
+my $add_user        = $opts{'a'};
+my $change_user     = $opts{'c'};
+my $delete_user     = $opts{'d'};
+my $show_user       = $opts{'s'};
 
-my $password    = $opts{'p'};
-my $uid         = $opts{'u'};
-my $name        = $opts{'n'};
-my $email       = $opts{'e'};
+my $password        = $opts{'p'};
+my $password_hash   = $opts{'H'};
+my $uid             = $opts{'u'};
+my $name            = $opts{'n'};
+my $email           = $opts{'e'};
 
-my $container   = $opts{'C'};
+my $container       = $opts{'C'};
 
-my $version     = $opts{'v'};
+my $version         = $opts{'v'};
 
 $version      && print_version();
 
@@ -37,8 +38,8 @@ my $DBH = db_connect($dbfile);
 
 $list_users   && list_users(); 
 $show_user    && show_user($show_user);
-$add_user     && add_user($add_user,$password,$name,$email,$container);
-$change_user  && change_user($change_user,$password,$name,$email,$container);
+$add_user     && add_user($add_user,$password,$password_hash,$name,$email,$container);
+$change_user  && change_user($change_user,$password,$password_hash,$name,$email,$container);
 $delete_user  && delete_user($delete_user);
 
 print_help();
@@ -85,6 +86,7 @@ sub add_user
 {
     my $uid       = shift;
     my $pass      = shift;
+    my $pass_hash = shift;
     my $name      = shift;
     my $email     = shift;
     my $container = shift || 'BennoContainer';
@@ -98,9 +100,10 @@ sub add_user
     my $sql = 'INSERT INTO user (id,archive,role) VALUES (?,?,?)';
     my $rows = $DBH->do($sql,undef,$uid,$container,$ROLE) or error_exit($DBH->errstr);
   
-    $pass   && update_password($uid,$pass);
-    $name   && update_name($uid,$name);
-    $email  && update_email($uid,$email);
+    $pass      && update_password($uid,$pass);
+    $pass_hash && update_password_hash($uid,$pass_hash);
+    $name      && update_name($uid,$name);
+    $email     && update_email($uid,$email);
 
     exit 0;
 }
@@ -109,20 +112,22 @@ sub add_user
 # change_user
 sub change_user
 {
-    my $uid   = shift;
-    my $pass  = shift;
-    my $name  = shift;
-    my $email = shift;
+    my $uid       = shift;
+    my $pass      = shift;
+    my $pass_hash = shift;
+    my $name      = shift;
+    my $email     = shift;
     my $container = shift;
 
     # check if user exists
     my @user = fetch_user($uid); 
     ($#user == 4) || error_exit('User does not exist.');
 
-    $pass   && update_password($uid,$pass);
-    $name   && update_name($uid,$name);
-    $email  && update_email($uid,$email);
-    $container && update_container($uid,$container);
+    $pass       && update_password($uid,$pass);
+    $pass_hash  && update_password_hash($uid,$pass_hash);
+    $name       && update_name($uid,$name);
+    $email      && update_email($uid,$email);
+    $container  && update_container($uid,$container);
 
     exit 0;
 }
@@ -145,6 +150,17 @@ sub delete_user
     $rows = $DBH->do($sql,undef,$uid) or error_exit($DBH->errstr);
 
     exit 0;
+}
+
+
+# update_password_hash
+sub update_password_hash
+{
+    my $uid       = shift;
+    my $pass_hash = shift; #  MD5, lowercase hexdigits only, length: 32 characters
+
+    my $sql = 'UPDATE user SET password=? WHERE id=?';
+    my $rows = $DBH->do($sql,undef,$pass_hash,$uid) or error_exit($DBH->errstr);
 }
 
 
@@ -282,6 +298,7 @@ sub print_help
     print "  -a <uid>           add user\n";
     print "  -c <uid>           change user (data given in additional options)\n";
     print "  -p <password>      password of the user\n";
+    print "  -H <passwordhash>  passwordhash of the user(MD5,32 hexdigits,lowercase)\n";
     print "  -n <name>          display name of the user\n";
     print "  -e <email,email>   comma separated list of email addresses ('' deletes all)\n";
     print "  -C <container>     container name (default BennoContainer)\n";
