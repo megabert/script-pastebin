@@ -36,6 +36,8 @@ $version      && print_version();
 
 my $DBH = db_connect($dbfile);
 
+($password && $password_hash) and error_exit('You can only specify -p password or -H password_hash, not both');
+
 $list_users   && list_users(); 
 $show_user    && show_user($show_user);
 $add_user     && add_user($add_user,$password,$password_hash,$name,$email,$container);
