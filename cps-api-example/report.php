@@ -36,13 +36,13 @@ function xml_pretty_print($xml_string) {
 
 }
 
-function execute_curl_request($url,$request) {
+function execute_curl_request($url,$XML_request) {
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL,$url);
         curl_setopt($curl, CURLOPT_VERBOSE, 0);
         curl_setopt($curl, CURLOPT_POST, 0);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $request);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $XML_request);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
         $response = curl_exec ($curl);
@@ -91,9 +91,12 @@ function get_domains_text($XML_response) {
 
         $dom    = DOMDocument::loadXML($XML_response);
         $xpath  = new DOMXPath($dom);
+	
+	// get the first data element with context-attribute "domain"
         $node   = ($xpath->query("//data[@context='domain']"))[0];
         $result = NULL;
 
+	// remove empty lines from result data
         foreach(preg_split("/((\r?\n)|(\r\n?))/", $node->nodeValue) as $line){
                 if(!preg_match('/^[[:space:]]*$/',$line)) $result=$result?"$result\n$line":$line;
         }
