@@ -17,7 +17,7 @@ hook script will be looked up and if it exists it will be run.
 
 1. copy system\_hooks.lua to /usr/lib/liveconfig/lua
 2. create directory /usr/share/liveconfig/hooks
-3. extend your custom.lua with the lines from the here contained custom.lua 
+3. extend your custom.lua with the line from the here contained custom.lua 
 4. copy hooks.conf to /etc/liveconfig/hooks.conf and put in an example hook
 5. create a script in /usr/share/liveconfig/hooks with the name of your hook an add executable permissions
 6. restart liveconfig and watch /var/log/liveconfig/liveconfig.log if any valid hooks are detected
