@@ -11,9 +11,9 @@ hook script will be looked up and if it exists it will be run.
 
 ## Installation
 
-** Attention: Usage of custom.lua voids warranty !! **
+**Attention: Usage of custom.lua voids warranty !!**
 
-** Attention: Only test this on production systems if you already are at superhero systemadministrator level !! **
+**Attention: Only test this on production systems if you already are at superhero systemadministrator level !!**
 
 1. copy system\_hooks.lua to /usr/lib/liveconfig/lua
 2. create directory /usr/share/liveconfig/hooks
