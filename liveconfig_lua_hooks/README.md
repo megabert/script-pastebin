@@ -2,18 +2,16 @@
 
 ## General
 
-These little files enable you to execute shell scripts whenever
+These little files enable you to execute scripts whenever
 liveconfig runs any of its configuration functions.
 
-Hooks are not defined so far and you can define the hooks you
-want. Whenever the liveconfig lua configuration is run, the 
-hook script will be looked up and if it exists it will be run.
+Hooks are not defined so far and you can be defined as needed.
+Whenever the liveconfig lua configuration is run, the hook 
+script will be looked up and if it exists it will be run.
 
 ## Installation
 
-**Attention: Usage of custom.lua voids warranty !!**
-
-**Attention: Only test this on production systems if you already are at superhero systemadministrator level !!**
+**Attention: Carefully test your server after editing lua scripts !!**
 
 1. copy system\_hooks.lua to /usr/lib/liveconfig/lua
 2. create directory /usr/share/liveconfig/hooks
