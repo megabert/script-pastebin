@@ -11,16 +11,7 @@ local function file_exists(filename)
    if f~=nil then io.close(f) return true end
 end
 
-local function get_file_contents(filename)
-        local f,err = io.open(filename,"r")
-        if(f) then
-                data=f:read("*a")
-                f:close()
-        end
-        return data
-end
-
-defined_hooks = {}
+local defined_hooks = {}
 
 local function hook_validated(hook)
 
@@ -44,31 +35,27 @@ end
 local function load_hooks_from_file()
 
         if(file_exists(hooks_config_file)) then
-                data = get_file_contents(hooks_config_file)
-                for line in data:gmatch("(.-)\n") do
-
-                        if(not line:match("^#")) then
-                                if(not line:match("^%s*$")) then
-                                        local hook = {}
-                                        line:gsub("^%s*([a-zA-Z0-9_]+)%s*,([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)%s*,([a-zA-Z]+)%s*$",
-                                                function(m1,m2,m3,m4)
-                                                        hook["name"]            = m1
-                                                        hook["lua_module"]      = m2
-                                                        hook["lua_function"]    = m3
-                                                        hook["execution"]       = m4
-                                                end)
-                                        LC.log.print(LC.log.INFO,
-                                                   "name: >>"  ..tostring(hook["name"])         .."<<"
-                                                 .." mod: >>"  ..tostring(hook["lua_module"])   .."<<"
-                                                .." func: >>" ..tostring(hook["lua_function"])  .."<<"
-                                                .." exec: >>"..tostring(hook["execution"])      .."<<")
-                                        if(hook["name"] ~= nil and hook_validated(hook)) then
-                                                LC.log.print(LC.log.INFO,"Hook definition for hook "..tostring(hook["name"]).." validated.")
-                                                defined_hooks[#defined_hooks+1]=hook
-                                        else
-                                                LC.log.print(LC.log.WARNING,"Hook definition for hook "..tostring(hook["name"]).." invalid. Ignoring Hook.")
-                                        end
-                                end
+                datafile = io.open(hooks_config_file,"r")
+                for line in datafile:lines() do
+                        if(not (line:match("^#") or line:match("^%s*$"))) then
+				local hook = {}
+				line:gsub("^%s*([a-zA-Z0-9_]+)%s*,([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)%s*,([a-zA-Z]+)%s*$",
+					function(m1,m2,m3,m4)
+						hook["name"]            = m1
+						hook["lua_module"]      = m2
+						hook["lua_function"]    = m3
+						hook["execution"]       = m4
+					end)
+				LC.log.print(LC.log.INFO,
+					   "name: >>"  ..tostring(hook["name"])         .."<<"
+					 .." mod: >>"  ..tostring(hook["lua_module"])   .."<<"
+					.." func: >>" ..tostring(hook["lua_function"])  .."<<"
+					.." exec: >>"..tostring(hook["execution"])      .."<<")
+				if(hook["name"] ~= nil and hook_validated(hook)) then
+					LC.log.print(LC.log.INFO,"Hook definition for hook "..tostring(hook["name"]).." validated.")
+					defined_hooks[#defined_hooks+1]=hook
+				else
+					LC.log.print(LC.log.WARNING,"Hook definition for hook "..tostring(hook["name"]).." invalid. Ignoring Hook.")
                         end
                 end
 
@@ -108,8 +95,8 @@ end
 
 function system_hooks.load()
 
-        load_hooks_from_file()
         LC.log.print(LC.log.INFO,"Loading hooks...")
+        load_hooks_from_file()
         for i,hook in ipairs(defined_hooks) do
                 local load_res,hook_function_backup,loaded_module  = protected_function_load(hook["lua_module"],hook["lua_function"])
                 if(load_res) then
