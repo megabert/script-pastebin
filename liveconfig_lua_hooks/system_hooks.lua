@@ -56,6 +56,7 @@ local function load_hooks_from_file()
 					defined_hooks[#defined_hooks+1]=hook
 				else
 					LC.log.print(LC.log.WARNING,"Hook definition for hook "..tostring(hook["name"]).." invalid. Ignoring Hook.")
+				end
                         end
                 end
 
@@ -77,6 +78,8 @@ local function protected_function_load(wanted_mod,wanted_func)
                 if(loaded_module[wanted_func]) then
                         LC.log.print(LC.log.INFO,"Wanted function " .. wanted_func.." exists within module " ..wanted_mod)
                         return true,loaded_module[wanted_func],loaded_module
+		else
+			LC.log.print(LC.log.WARNING,"Wanted function " .. wanted_func.." missing within module " ..wanted_mod)
                 end
         end
 end
