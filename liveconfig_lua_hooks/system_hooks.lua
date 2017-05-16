@@ -17,7 +17,7 @@ local function dir_exists(dirname)
 	if(res==0) then return true end
 end
 
-function normalize_dirname(dirname) 
+local function normalize_dirname(dirname) 
 
 	--[[ 
 
@@ -37,7 +37,7 @@ function normalize_dirname(dirname)
 
 end
 
-function mkdir(dirname)
+local function mkdir(dirname)
 	if(dirname) then
 		if(dir_exists(dirname)) then
 			return true
@@ -81,14 +81,14 @@ local function hook_validated(hook)
         end
 end
 
-function get_command_output_handle(command)
+local function get_command_output_handle(command)
 	handle,err = io.popen(command,"r")
 	if(handle) then 
 		return handle
 	end
 end
 
-function get_files(dir)
+local function get_files(dir)
 	
 	local files={}
 	local handle = get_command_output_handle("find "..dir.." -maxdepth 1 -type f")
