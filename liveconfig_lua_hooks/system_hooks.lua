@@ -106,7 +106,7 @@ local function get_hook_files()
 		mkdir(hooks_config_dir)
 	else
 		for _,filename in ipairs(get_files(hooks_config_dir)) do
-        		LC.log.print(LC.log.INFO,"got filename >>"..filename.."<<")
+        		LC.log.print(LC.log.DEBUG,"got filename >>"..filename.."<<")
 			if(filename:match("conf$")) then
 				hook_files[#hook_files+1]=filename
 			end
@@ -119,7 +119,7 @@ end
 local function load_hooks_from_file()
 
 	for _,hook_file in ipairs(get_hook_files()) do
-        	LC.log.print(LC.log.INFO,"processing hooks file >>"..hook_file.."<<")
+        	LC.log.print(LC.log.DEBUG,"processing hooks file >>"..hook_file.."<<")
 		if(file_exists(hook_file)) then
 			datafile = io.open(hook_file,"r")
 			for line in datafile:lines() do
@@ -132,7 +132,7 @@ local function load_hooks_from_file()
 							hook["lua_function"]    = m3
 							hook["execution"]       = m4
 						end)
-					LC.log.print(LC.log.INFO,
+					LC.log.print(LC.log.DEBUG,
 						   "name: >>"  ..tostring(hook["name"])         .."<<"
 						 .." mod: >>"  ..tostring(hook["lua_module"])   .."<<"
 						.." func: >>" ..tostring(hook["lua_function"])  .."<<"
@@ -157,17 +157,19 @@ local function protected_function_load(wanted_mod,wanted_func)
                 end
 
         -- load the module protected from error
-        LC.log.print(LC.log.INFO,"Trying to load module " .. wanted_mod)
+        LC.log.print(LC.log.DEBUG,"Trying to load module " .. wanted_mod)
         local res, loaded_module = pcall(tmp_function,wanted_mod)
         if(res) then
-                LC.log.print(LC.log.INFO,"Loading of module " .. wanted_mod.." successful")
+                LC.log.print(LC.log.DEBUG,"Loading of module " .. wanted_mod.." successful")
                 -- check if the wanted function exists
                 if(loaded_module[wanted_func]) then
-                        LC.log.print(LC.log.INFO,"Wanted function " .. wanted_func.." exists within module " ..wanted_mod)
+                        LC.log.print(LC.log.DEBUG,"Wanted function " .. wanted_func.." exists within module " ..wanted_mod)
                         return true,loaded_module[wanted_func],loaded_module
 		else
 			LC.log.print(LC.log.WARNING,"Wanted function " .. wanted_func.." missing within module " ..wanted_mod)
                 end
+	else
+			LC.log.print(LC.log.WARNING,"Wanted function " .. wanted_func.." did not load correctly " ..wanted_mod)
         end
 end
 
@@ -178,7 +180,7 @@ local function exec_hook_script(hookname)
                         LC.log.print(LC.log.INFO,"Hookfile " .. hookname .." exists. Hook will be executed now.")
                         local ex,stdout,stderr = LC.exec(hook_file)
                 else
-                        LC.log.print(LC.log.INFO,"Hookfile " .. hookname .." does not exists.")
+                        LC.log.print(LC.log.WARNING,"Hookfile " .. hookname .." does not exists.")
                 end
         end
 end
@@ -202,7 +204,7 @@ function system_hooks.load()
                                         end
                                         return res
                                 end
-                        LC.log.print(LC.log.INFO,"Overwriting lua function " .. hook["lua_module"].."."..hook["lua_function"])
+                        LC.log.print(LC.log.DEBUG,"Overwriting lua function " .. hook["lua_module"].."."..hook["lua_function"])
                         LC[hook["lua_module"]][hook["lua_function"]] = new_function
                 end
         end
