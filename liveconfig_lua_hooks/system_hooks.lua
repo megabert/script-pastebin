@@ -55,7 +55,7 @@ local function mkdir(dirname)
 	for i,part in ipairs(dir_parts) do
 		whole_dir = whole_dir .. "/" .. part
 		if(not dir_exists(whole_dir)) then
-			os.execute(whole_dir)
+			os.execute("mkdir -p "..whole_dir)
 		end
 	end
 end
