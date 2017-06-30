@@ -3,9 +3,10 @@
 $self = array_shift($argv);
 
 $openssl_input	= shell_exec("LC_ALL=C openssl s_client </dev/null 2>/dev/null " . implode(" ",$argv). " -CApath /etc/ssl/certs");
-preg_match("/(-----BEGIN CERTIFICATE.*END CERTIFICATE-----)/smi",$openssl_input,$matches);
 
+preg_match("/(-----BEGIN CERTIFICATE.*END CERTIFICATE-----)/smi",$openssl_input,$matches);
 $cert		= $matches[1];
+
 preg_match("/Verify return code: ([0-9]+) \(([^)]+)\)/",$openssl_input,$matches);
 $status_code	= $matches[1];
 $status_text	= $matches[2];
