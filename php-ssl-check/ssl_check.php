@@ -2,7 +2,7 @@
 
 $self = array_shift($argv);
 
-$openssl_input	= shell_exec("openssl s_client </dev/null 2>/dev/null " . implode(" ",$argv). " -CApath /etc/ssl/certs");
+$openssl_input	= shell_exec("LC_ALL=C openssl s_client </dev/null 2>/dev/null " . implode(" ",$argv). " -CApath /etc/ssl/certs");
 preg_match("/(-----BEGIN CERTIFICATE.*END CERTIFICATE-----)/smi",$openssl_input,$matches);
 
 $cert		= $matches[1];
