@@ -22,37 +22,15 @@ $mail_passwd  = $argv[3];
 $lc_api = new LC_SOAP_API($lc_api_url,$lc_api_user,$lc_api_pass);
 
 list($res,$soapFault) = $lc_api->create_email_user($mail_address,$subscription,$mail_passwd);
-$info="";
 if($res) { 
-	$result = $res->status; 
+	print "Success: ".$res->status."\n"; 
+	exit(0);
 } else {
-	# if we have an error, we check if the account already exists and just reset the password in this case
-	if($soapFault &&preg_match("/Mail address or alias already in use/",$soapFault->faultstring) ) {
-	list($res,$soapFault) = $lc_api->pwreset_email_user($mail_address,$subscription,$mail_passwd);
-		if($res && $res->status == "ok") {
-			$result = "ok";
-			$info   = "existing account: pw reset ok"; 
-		} else {
-			$result = "failed";
-			$info   = "existing account: pw reset failed(".$soapFault->faultstring.")";
-
-		}
+	if($soapFault) {
+		print "Error: ".$soapFault->faultstring."\n"; 
+		exit(1);
 	} else {
-		$result = "failed";
-		$info   = "user_create failed(".$soapFault->faultstring.")"; 
+		print "Uh! Oh! Unkown Error\n";
 	}
 }
-
-# print error message on stdout
-print("$info\n");
-
-if($result=="failed") {
-	exit(1);
-}
-if($result=="ok") {
-	exit(0);
-}
-
-#undefined status -> exit with error 2
-exit(2);
 ?>
