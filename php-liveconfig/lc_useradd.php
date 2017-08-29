@@ -30,7 +30,8 @@ if($res) {
 		print "Error: ".$soapFault->faultstring."\n"; 
 		exit(1);
 	} else {
-		print "Uh! Oh! Unkown Error\n";
+		print "Uh Oh! Unkown Error!\n";
+		exit(2);
 	}
 }
 ?>
