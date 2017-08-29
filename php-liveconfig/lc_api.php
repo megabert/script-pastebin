@@ -64,10 +64,9 @@ class LC_SOAP_API {
 	  $ts 		= gmdate("Y-m-d") . "T" . gmdate("H:i:s") . ".000Z";
 	  $token	= $this->create_token($api_function_name,$ts);
 
-	  $auth 	= array('login'     => $this->api_user,
+	  $data["auth"]	= array('login'     => $this->api_user,
 				'timestamp' => $ts,
 				'token'     => $token);
-	  $data["auth"] = $auth;
 
 	  $client 	= $this->create_soap_client();
 	  try {
