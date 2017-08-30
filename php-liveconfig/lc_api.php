@@ -20,14 +20,43 @@ class LC_SOAP_API {
 
 	}
 
-	public function create_email_user($email_address,$subscription,$password) {
+	public function hosting_lookup($domain) {
+	
+		$error_info = NULL;
+		# print("lookup: $domain\n");
+		list($res,$soapFault) = $this->soap_request("HostingLookup",["domain" => $domain]);
+		if(
+				$res  
+			and	is_object($res) 
+			and 	property_exists($res,"subscription") ) {
+			return [ $res->subscription , NULL ];
+		} else {
+			$error_info = [];
+			if ($soapFault) {
+				$error_info["message"] 	=  $soapFault->faultstring;
+				$error_info["code"]     =  $soapFault->faultcode;
+				$error_info["data"]     =  $soapFault;
+			} else {
+				$error_info["message"]	= "Unknown Error";
+				$error_info["code"]     = "99";
+				$error_info["response"] = $res;
+			}
+			return [ NULL, $error_info ];
+		}
+	}
 
-  		list( $mail_user_part,$mail_domain_part ) = $this->parse_email($email_address);
+	public function create_email_user($email_address,$password,$subscription=NULL) {
+	
+
+		# print("create: $email_address,$password,$subscription\n");
+  		list( $mail_user_part,$mail_domain ) = $this->parse_email($email_address);
+
+		$subscription = $subscription ? $subscription : ($this->hosting_lookup($mail_domain)[0]);
 
 		$data = [
 			'subscription' 	=> $subscription,
 			'name'		=> $mail_user_part,
-			'domain'	=> $mail_domain_part,
+			'domain'	=> $mail_domain,
 			'mailbox'	=> 1,
 			'password'	=> $password,
 			'weblogin'	=> 1,
@@ -36,10 +65,35 @@ class LC_SOAP_API {
 			'automessage'	=> "Guten Tag,\n\nvielen Dank für Ihre Nachricht. Ich bin momentan leider nicht erreichbar.\n\nViele Grüße",
 			'quota'		=> 500 ];
 
-		return $this->soap_request("HostingMailboxAdd",$data);
+		list($res,$soapFault) = $this->soap_request("HostingMailboxAdd",$data);
+		if(
+				$res 
+			and 	is_object($res) 
+			and 	property_exists($res,"status")
+			and 	$res->status=="ok" ) {
+
+			return [ true, NULL ];
+		} else {
+			$error_info = [];
+			if ($soapFault) {
+				$error_info["message"] 	=  $soapFault->faultstring;
+				$error_info["code"]     =  $soapFault->faultcode;
+				$error_info["data"]     =  $soapFault;
+			} else {
+				$error_info["message"]	= "Unknown Error";
+				$error_info["code"]     = "99";
+				$error_info["response"] = $res;
+			}
+			return [ NULL, $error_info ];
+		}
 	}
 
-	public function pwreset_email_user($email_address,$subscription,$password) {
+	public function pwreset_email_user($email_address,$password,$subscription=NULL) {
+
+		# print("pwreset: $email_address,$password,$subscription\n");
+		$subscription = $subscription ? $subscription : ($this->hosting_lookup($this->parse_email($email_address)[1]));
+
+		if(!$subscription) { return [ NULL, [ "message" => "No subscription provided/found for $email_address" ] ] ; }
 
 		$data = [
 			'subscription' 	=> $subscription,
@@ -47,7 +101,27 @@ class LC_SOAP_API {
 			'mailbox'	=> 1,
 			'password'	=> $password ];
 
-		return $this->soap_request("HostingMailboxEdit",$data);
+		list($res,$soapFault) = $this->soap_request("HostingMailboxEdit",$data);
+		if(
+				$res 
+			and 	is_object($res) 
+			and 	property_exists($res,"status")
+			and 	$res->status=="ok" ) {
+
+			return [ true, NULL ];
+		} else {
+			$error_info = [];
+			if ($soapFault) {
+				$error_info["message"] 	=  $soapFault->faultstring;
+				$error_info["code"]     =  $soapFault->faultcode;
+				$error_info["data"]     =  $soapFault;
+			} else {
+				$error_info["message"]	= "Unknown Error";
+				$error_info["code"]     = "99";
+				$error_info["response"] = $res;
+			}
+			return [ NULL, $error_info ];
+		}
 	}
 
 	private function parse_email($email_address) {
@@ -58,6 +132,8 @@ class LC_SOAP_API {
 
 	private function soap_request($api_function_name,$data) {
 
+	# print($api_function_name."\n");
+	# print_r($data);
 	  $response 	= NULL;
 	  $soapFault	= NULL;
 

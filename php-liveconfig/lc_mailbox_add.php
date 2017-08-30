@@ -7,30 +7,28 @@ include_once "config.php";
 include_once "lc_api.php";
 
 if ( $argc <= 3 ) {
-  echo "\nUsage $argv[0] <E-Mailadresse> <LiveConfig-Vertrag> <Passwort>\n\n";
-  echo "\t E-Mailadresse:               z. B.: user.name@domain.com\n";
-  echo "\t LiveConfig-Vertrag:  z. B.: web3\n";
+  echo "\nUsage $argv[0] <E-Mailadresse> <Passwort>\n\n";
+  echo "\t E-Mailadresse:       z. B.: user.name@domain.com\n";
   echo "\t Passwort:            z. B.: dsfkdshfksdjf\n";
   echo "\n";
   exit(9);
 }  
 
 $mail_address = $argv[1];
-$subscription = $argv[2];
-$mail_passwd  = $argv[3];
+$mail_passwd  = $argv[2];
 
 $lc_api = new LC_SOAP_API($lc_api_url,$lc_api_user,$lc_api_pass);
 
-list($res,$soapFault) = $lc_api->create_email_user($mail_address,$subscription,$mail_passwd);
+list($res,$err) = $lc_api->create_email_user($mail_address,$mail_passwd);
 if($res) { 
-	print "Success: ".$res->status."\n"; 
+	print "Success\n"; 
 	exit(0);
 } else {
-	if($soapFault) {
-		print "Error: ".$soapFault->faultstring."\n"; 
+	if($err) {
+		print "Error: ".$err["message"]."\n"; 
 		exit(1);
 	} else {
-		print "Uh Oh! Unkown Error!\n";
+		print "Uh-Oh! Unkown Error!\n";
 		exit(2);
 	}
 }
