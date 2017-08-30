@@ -24,12 +24,7 @@ if($res) {
 	print "Success\n"; 
 	exit(0);
 } else {
-	if($err) {
-		print "Error: ".$err["message"]."\n"; 
-		exit(1);
-	} else {
-		print "Uh-Oh! Unkown Error!\n";
-		exit(2);
-	}
+	print("Error: ".$err["message"]."\n");
+	exit(1);
 }
 ?>
