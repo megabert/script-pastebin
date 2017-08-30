@@ -80,16 +80,15 @@ class LC_SOAP_API {
 	}
 
 	private function create_soap_client() {
-		  $client = new SoapClient($this->wsdl_url,
+		  return new SoapClient($this->wsdl_url,
 				   array('style'    => SOAP_DOCUMENT,
 					 'use'      => SOAP_LITERAL,
 					)
 			  );
-		  return $client;
 	}
 
 	private function create_token($api_function_name,$ts) {
-		$token = base64_encode(hash_hmac('sha1',
+		return base64_encode(hash_hmac('sha1',
 				'LiveConfig' 
 				. $this->api_user 
 				. $api_function_name 
@@ -97,8 +96,6 @@ class LC_SOAP_API {
 				$this->api_pass,
 					   true)
                         );
-		return $token;
-
 	}
 }
 
