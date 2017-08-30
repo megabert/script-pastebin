@@ -22,8 +22,8 @@ class LC_SOAP_API {
 
 	public function hosting_lookup($domain) {
 	
+		lg_debug("LC_API call ".__FUNCTION__." with domain=$domain");
 		$error_info = NULL;
-		# print("lookup: $domain\n");
 		list($res,$soapFault) = $this->soap_request("HostingLookup",["domain" => $domain]);
 		if(
 				$res  
@@ -47,11 +47,11 @@ class LC_SOAP_API {
 
 	public function create_email_user($email_address,$password,$subscription=NULL) {
 	
-
-		# print("create: $email_address,$password,$subscription\n");
+		lg_debug("LC_API call ".__FUNCTION__." with address=$email_address");
   		list( $mail_user_part,$mail_domain ) = $this->parse_email($email_address);
 
 		$subscription = $subscription ? $subscription : ($this->hosting_lookup($mail_domain)[0]);
+		lg_debug("subscription: $subscription");
 
 		$data = [
 			'subscription' 	=> $subscription,
@@ -69,11 +69,11 @@ class LC_SOAP_API {
 		if(
 				$res 
 			and 	is_object($res) 
-			and 	property_exists($res,"status")
-			and 	$res->status=="ok" ) {
+			and 	property_exists($res,"id")) { 
 
 			return [ true, NULL ];
 		} else {
+			lg_debug(print_r($res,1));
 			$error_info = [];
 			if ($soapFault) {
 				$error_info["message"] 	=  $soapFault->faultstring;
@@ -90,7 +90,7 @@ class LC_SOAP_API {
 
 	public function pwreset_email_user($email_address,$password,$subscription=NULL) {
 
-		# print("pwreset: $email_address,$password,$subscription\n");
+		lg_debug("LC_API call ".__FUNCTION__." with address=$email_address");
 		$subscription = $subscription ? $subscription : ($this->hosting_lookup($this->parse_email($email_address)[1]));
 
 		if(!$subscription) { return [ NULL, [ "message" => "No subscription provided/found for $email_address" ] ] ; }

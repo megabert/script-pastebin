@@ -3,6 +3,7 @@
 
 #  sample php script to use the LC_SOAP_API
 
+include_once "log.php";
 include_once "config.php";
 include_once "lc_api.php";
 
