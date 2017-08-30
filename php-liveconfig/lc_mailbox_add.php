@@ -6,7 +6,7 @@
 include_once "config.php";
 include_once "lc_api.php";
 
-if ( $argc <= 3 ) {
+if ( $argc <= 2 ) {
   echo "\nUsage $argv[0] <E-Mailadresse> <Passwort>\n\n";
   echo "\t E-Mailadresse:       z. B.: user.name@domain.com\n";
   echo "\t Passwort:            z. B.: dsfkdshfksdjf\n";
