@@ -89,7 +89,6 @@ class LC_SOAP_API {
 	}
 
 	private function create_token($api_function_name,$ts) {
-		$ts = gmdate("Y-m-d") . "T" . gmdate("H:i:s") . ".000Z";
 		$token = base64_encode(hash_hmac('sha1',
 				'LiveConfig' 
 				. $this->api_user 
