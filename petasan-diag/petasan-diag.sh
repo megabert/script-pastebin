@@ -108,7 +108,7 @@ pci_info() {
 
 requirements() {
 
-	wich gawk &>/dev/null && error_exit "gawk not found, please install package"
+	wich gawk &>/dev/null || error_exit "gawk not found, please install package"
 
 }
 
