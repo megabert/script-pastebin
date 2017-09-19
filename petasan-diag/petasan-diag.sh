@@ -78,6 +78,29 @@ ip_connectivity() {
 
 }
 
+my_ssh() {
+
+	local TARGET="$1"
+	if ssh -o ConnectTimeout=3 $TARGET date &>/dev/null;then
+		echo success
+	else
+		echo fail
+	fi
+
+}
+
+ssh_connectivity() {
+
+	h2 "Cluster SSH-Connectivity"
+	for ip in $* ; do
+		if ! [[ $MY_IPS =~ $ip($|[[:space:]]) ]] ;then
+			printf "checking ssh connection to root@%-15s ... " "$ip"
+			my_ssh $ip
+		fi
+	done
+	echo 
+}
+
 petasan_log() {
 
 	h2 "PetaSAN Log"
@@ -95,7 +118,13 @@ hostinfo() {
 clockinfo() {
 
 	h2 "Server Clock"
-	echo -e "Clock offset from $1: $(ntpdate -q 10.1.0.101 | grep stratum | awk '{print $6}' | tr -d ,)\n"
+	local ntpdate_output="$(ntpdate -q $1 2>&1)"
+	if [[ $ntpdate_output =~ "no server suitable for synchronization" ]];then
+		echo "ERROR: Could not get NTP Date from $1"
+	else
+		echo -e "Clock offset from $1: $(grep stratum <<<"$ntpdate_output"| awk '{print $6}' | tr -d ,)"
+	fi
+	echo
 }
 
 pci_info() {
@@ -118,6 +147,7 @@ clockinfo 10.1.0.101
 if_state
 ip_config 
 ip_connectivity 10.1.0.101 10.5.3.11 10.5.4.11 10.1.0.102 10.5.3.12 10.5.4.12 10.1.0.103 10.5.3.13 10.5.4.13 8.8.8.8 www.google.de
+ssh_connectivity 10.1.0.101 10.1.0.102 10.1.0.103
 disks
 petasan_log
 pci_info
