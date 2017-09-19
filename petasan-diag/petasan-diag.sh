@@ -16,7 +16,7 @@ h1() {
 }
 
 h2() 		{ echo -e "*** $* ***\n"; }
-error_exit() 	{ echo "ERROR: $*"; }
+error_exit() 	{ echo "ERROR: $*"; exit 1; }
 
 ip_config() {
 	h2 "Interface IP-Address status"
