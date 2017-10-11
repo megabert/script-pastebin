@@ -12,7 +12,7 @@ function err_msg {
 
 function init {
 
-	if type nmap  >/dev/null 2>&1 ; then
+	if ! type nmap  >/dev/null 2>&1 ; then
 		echo
 		err_msg "nmap not found, please install"
 		err_msg "Debian/Ubuntu: apt-get install nmap"
@@ -20,7 +20,7 @@ function init {
 		exit 1
 	fi
 
-	if type openssl  >/dev/null 2>&1 ; then
+	if ! type openssl  >/dev/null 2>&1 ; then
 		echo
 		err_msg "openssl command line client not found, please install"
 		err_msg "Debian/Ubuntu: apt-get install openssl"
@@ -81,6 +81,17 @@ function check_ssl_text {
 	fi
 }
 
+
+if [ $# -lt 1 ];then
+	echo
+	echo "$(basename $0) - check ssl funtionality of mailservices"
+	echo
+	echo "Usage: $(basename $0) <hostname>"
+	echo
+	exit 1
+fi
+
+init
 
 for server in $*;do
 
