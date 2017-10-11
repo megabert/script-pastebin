@@ -1,0 +1,108 @@
+#!/bin/bash 
+
+export  LC_ALL=C
+export LC_LANG=C
+export    LANG=C
+
+function err_msg {
+
+	echo "$*"
+
+}
+
+function init {
+
+	if type nmap  >/dev/null 2>&1 ; then
+		echo
+		err_msg "nmap not found, please install"
+		err_msg "Debian/Ubuntu: apt-get install nmap"
+		echo
+		exit 1
+	fi
+
+	if type openssl  >/dev/null 2>&1 ; then
+		echo
+		err_msg "openssl command line client not found, please install"
+		err_msg "Debian/Ubuntu: apt-get install openssl"
+		echo
+		exit 1
+	fi
+
+}
+
+function check_ssl_lowlevel {
+	server=$1
+	  port=$2
+	 proto=$3
+	if [ -n "$proto" ]; then
+		return_msg=$(echo | openssl s_client -connect $server:$port -starttls $proto  -CApath /etc/ssl/certs/ 2>/dev/null)
+	else
+		return_msg=$(echo | openssl s_client -connect $server:$port                   -CApath /etc/ssl/certs/ 2>/dev/null)
+	fi
+
+	expire_date=$(echo "$return_msg" | openssl x509 -text -dates 2>/dev/null | grep notAfter | cut -d= -f2 )
+        ssl_for_domain=$(echo "$return_msg" | grep -i cn| grep -i subject | sed -re 's/^.*=(.*)$/\1/')
+
+
+	        return_ok=$(echo $return_msg | grep -q "Verify return code: 0";echo -n $?)
+	return_status_msg=$(echo $return_msg | grep "Verify return code" | sed -re 's/^.*\((.*)\).*$/\1/')
+	if [ -z "$return_status_msg" ] ; then if echo $return_msg | grep -qi "no peer certificate available"; then
+		return_status_msg="SSL not available" ;fi
+		fi
+
+	echo >&2 $expire_date
+	echo >&3 $ssl_for_domain
+	echo $return_status_msg
+	return $return_ok
+}
+
+function check_ssl_text {
+	server=$1 
+	  port=$2
+	 proto=$3
+
+	if ! nmap -P0 -p$port $server 2>&1 | grep -q "$port/tcp open"  ;then
+		echo "Port closed"
+		return
+	fi
+
+	status_text=$(check_ssl_lowlevel $server $port $proto 2>/tmp/datefile.txt 3>/tmp/ssl_cn_domain.txt)
+	mydate=$(cat /tmp/datefile.txt)
+	ssl_cn=$(cat /tmp/ssl_cn_domain.txt)
+	rm -f /tmp/datefile.txt /tmp/ssl_cn_domain.txt
+	[ -n "$mydate" ] && append=" ABLAUF: $mydate"
+	[ -n "$ssl_cn" ] && append="$append Certificate-CN: $ssl_cn"
+	
+	status=$?
+	if [ "$status" -eq "0" ] ; then
+		echo "ok$append"
+	else
+		echo "fail ( $status_text )"
+	fi
+}
+
+
+for server in $*;do
+
+	if [ -z "$server" ]; then
+		echo 
+		echo "Usage: $(basename $0) <servername> ..."
+		echo 
+		echo "Check if SSL-Certificates for mail services are valid"
+		echo
+		exit 1
+	fi
+
+	echo
+	printf "Server %-30s imap/starttls(143)     %-10s\n"  "$server" "$(check_ssl_text $server 143 imap)"
+	printf "Server %-30s imap/ssl(993)          %-10s\n"  "$server" "$(check_ssl_text $server 993)"
+
+	printf "Server %-30s pop3/starttls(110)     %-10s\n"  "$server" "$(check_ssl_text $server 110 pop3)"
+	printf "Server %-30s pop3/ssl(995)          %-10s\n"  "$server" "$(check_ssl_text $server 995)"
+
+	printf "Server %-30s smtp/starttls(25)      %-10s\n"  "$server" "$(check_ssl_text $server 25 smtp)"
+	printf "Server %-30s smtp/starttls(587)     %-10s\n"  "$server" "$(check_ssl_text $server 587 smtp)"
+	printf "Server %-30s smtp/ssl(465)          %-10s\n"  "$server" "$(check_ssl_text $server 465)"
+	echo
+
+done
