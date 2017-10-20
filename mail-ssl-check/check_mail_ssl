@@ -95,15 +95,6 @@ init
 
 for server in $*;do
 
-	if [ -z "$server" ]; then
-		echo 
-		echo "Usage: $(basename $0) <servername> ..."
-		echo 
-		echo "Check if SSL-Certificates for mail services are valid"
-		echo
-		exit 1
-	fi
-
 	echo
 	printf "Server %-30s imap/starttls(143)     %-10s\n"  "$server" "$(check_ssl_text $server 143 imap)"
 	printf "Server %-30s imap/ssl(993)          %-10s\n"  "$server" "$(check_ssl_text $server 993)"
