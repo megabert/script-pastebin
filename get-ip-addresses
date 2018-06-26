@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#	
+#	get-ip-addresses
+#
+#	display all ipv4/ipv6 addresses active in the system
+#
+
 LC_ALL=C
 SELF="$(basename $0)"
 
