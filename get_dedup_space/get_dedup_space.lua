@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 
--- input data format
+-- input data format (this script expects the data from stdin)
 --
 -- INODE_NR
 -- FILE_SIZE
