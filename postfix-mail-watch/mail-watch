@@ -9,6 +9,15 @@
 #
 #		pattern	only print lines(sender/recipient) matching the pattern (extended regex)
 #
+# 
+# 	Sample output 
+#
+# Watching postfix activity for >>oops.de<<
+# 
+# Jul 25 16:33:09 D05C94AAE57 deferred   hen@nothing.de                                                                        christoph@oops.de                 
+# Jul 25 16:33:16 1B7734AAE57 sent       jan@oops.de                                                                           jan@oops.de                       
+# Jul 25 16:33:16 1B7734AAE57 sent       jan@oops.de                                                                           katja@blablub.de                  
+# Jul 25 16:33:16 1B7734AAE57 sent       jan@oops.de                                                                           ugur@blablub.de    
 #
 
 if [ "$1" == "-a" ]; then 
