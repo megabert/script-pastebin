@@ -1,0 +1,57 @@
+#!/bin/bash 
+
+#
+#	program:	get_firefox
+#	
+#	description:	get current stable firefox put it into /opt/firefox and
+#			put symlinks to /usr/local/bin/firefox(program) and 
+#			/opt/firefox/current(programm directory)
+#		
+#			cleanup old program versions 
+#
+
+firefox_dir=/opt/firefox
+arch=x86_64
+lang=de
+firefox_base_url="https://ftp.mozilla.org/pub/firefox/releases"
+url_pattern="$firefox_base_url/%%VERSION%%/linux-$arch/$lang/firefox-%%VERSION%%.tar.bz2"
+
+mylog() {
+	echo "$*"
+}
+
+myexit() {
+	mylog "$*" 
+	exit 1
+}
+
+checkproc() {
+
+	for proc in "$@" ; do
+		which "$proc" &>/dev/null || myexit "$proc missing, please install, aborted"
+	done
+}
+
+checkproc wget html2text
+{ [ -w "$firefox_dir/.." ] && [ -w /usr/local/bin ]; } || myexit "Insufficient permissions, aborted"
+[ -d $firefox_dir ] || mkdir -p $firefox_dir
+last_version="$(wget -q $firefox_base_url/ -O-  | html2text | tr -d / | awk '{print $2}' | sort -V | grep -E '^[0-9.]+$' | tail -n 1)"
+last_installed_version="$(cd $firefox_dir ; ls -d firefox-* | grep -E '^firefox-[0-9.]+$' | sed -e 's/firefox-//' | sort -V | tail -n 1)"
+
+echo "available: $last_version"
+echo "installed: $last_installed_version"
+if [ "$last_version" != "$last_installed_version" ] ; then
+	firefox_download_url="${url_pattern//%%VERSION%%/$last_version}"
+	wget -q --spider "$firefox_download_url" && mylog "Firefox Download available" || myexit "Firefox Download $firefox_download_url not available, aborted"
+	cd $firefox_dir || myexit "chdir to $firefox_dir failed"
+	wget -c -q "$firefox_download_url" && mylog "Firefox Download successful" || myexit "Firefox Download of $firefox_download_url failed, aborted"
+	tar -xjf "firefox-$last_version.tar.bz2" && mylog "Firefox Unpack successful" || myexit "Firefox Unpack failed, aborted"
+	ls | grep -E "^firefox-[0-9.]+"'$' | xargs rm -rf 
+	mv firefox "firefox-$last_version"
+	ln -sf "$firefox_dir/firefox-$last_version/firefox" /usr/local/bin/firefox
+	ln -sf "$firefox_dir/firefox-$last_version" "$firefox_dir/current"
+	find "$firefox_dir" -type f -name "firefox-*bz2" -mtime +180 -exec rm -f "{}" +
+else
+	mylog "Firefox up2date, terminating normal"
+	exit 0
+fi
