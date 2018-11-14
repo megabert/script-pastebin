@@ -1,10 +1,8 @@
-# Nutzungshinweise
-
 ## Allgemeines
 
 Das Script erlaubt es einem über die Firefox-Erweiterung "Greasemonkey" 
-Themen von Benutzern von debianforum.de auszublenden. Dazu muss die 
-Erweiterung greasemonkey installiert werden, ein neues Script angelegt 
+Themen von namentlich konfigurierten Benutzern von debianforum.de auszublenden. 
+Dazu muss die Erweiterung greasemonkey installiert werden, ein neues Script angelegt 
 werden und der Inhalt der Datei hide-user-threads.js in diese Datei 
 eingefügt und gespeichert werden.
 
