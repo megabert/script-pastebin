@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name     DF_Hide_Ignored_User_Threads
+// @name     DF_Hide_User_Threads
 // @author   heisenberg
 // @version  1
 // @grant    none
