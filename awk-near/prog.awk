@@ -2,7 +2,9 @@
 
 
 #
-#	Aufruf: ./prog.awk orte.txt haupttext.txt
+#	Aufruf: ./prog.awk orte.txt haupttext.txt haupttext.txt
+#
+#	Ja, da muss zweimal haupttext.txt stehen(Die Datei wird zweimal durchlaufen)
 #
 
 BEGIN {
@@ -39,17 +41,18 @@ function pruefe_block(zeilen,email,orte_regex,	gesamt,trail_re,kat_regex) {
 
 	# die funktion sucht jetzt den Block nach den gewuenschten werten ab, ausgehend von der E-Mailadresse
 	# die nähesten werte (Stadt, Kategorie) bis zur maximalen Wortentfernung werden zurueckgegeben
-	# TODO
 
 	print "***pruefe block: *** " email 
 	gesamt = join(zeilen)
 	trail_re="[.,:-]?"
 	#print gesamt
 	
-	# finde kategorie in Distanz 1-max_distanz
+	# finde kategorie in Abstand 0 bis max_abstand
 	kat_regex = "kategorie" trail_re "[[:space:]]+([^[:space:]]+)" trail_re 
 	kategorie = entferne_muell_am_ende( finde_naehestes(email trail_re,kat_regex,gesamt,max_abstand) )
 	print "Mail: " email " Kategorie: " kategorie
+
+	# TODO: Finde Ort in Abstand 0 bis max_abstand
 
 } 
 
@@ -99,7 +102,7 @@ FNR == 1 {
 	}
 }
 
-# 2. Datei, 1. Durchlauf: tatsächliche Orte Ermitteln
+# 2. Datei, 1. Durchlauf: tatsächliche Orte ermitteln
 durchlauf == 1 {
 	if(match($0,orte_regex,ary)) {
 		orte_gefunden[tolower(ary[0])]=1
@@ -107,16 +110,14 @@ durchlauf == 1 {
 	next
 }
 
-# 2. Datei, 1. Durchlauf: tatsächliche Orte Ermitteln
-
-# ist in aktueller Zeile(2. Datei!) eine E-Mailadresse enthalten?
+# ist in aktueller Zeile(2. Datei, 2. Durchlauf) eine E-Mailadresse enthalten?
 match($0,/[a-zA-Z0-9_.+\-]+@[a-zA-Z0-9}-]+\.[a-zA-Z0-9\-.]+[a-zA-Z]/,ary) {
 	print "E-Mailadresse entdeckt in Zeile: "FNR" email: "ary[0]
 	mail_adresse_entdeckt_in_zeile[FNR]=1
 	email_adresse[FNR]=tolower(ary[0])
 }
 
-# für alle Zeilen(2. Datei!)
+# für alle Zeilen(2. Datei, 2. Durchlauf)
 {
 	# zeilenpuffer mit 10 Zeilen als fifo (neue zeile -> 1 -> 2 -> ... -> 10 -> raus) durchschieben
 	for(i=9;i>=1;i--) {
@@ -145,7 +146,5 @@ END {
 			pruefe_block(zeilen,email_adresse[FNR-j],orte_gefunden_regex)
 		}
 	}
-
-	# TODO: Nachdem alles untersucht und alle werte gefunden wurden, erfolgt hier die Ausgabe der Daten
 }
 
