@@ -14,7 +14,7 @@ BEGIN {
 
 # ungewoehnlich, awk kennt eigentlich keine lokalen variablen. Deswegen der offizielle Umweg,
 # lokale Variablen zusätzlich im Bereich für Funktionsargumente, per Konvention mit Leerzeichen
-# getrennt zu definieren.
+# getrennt von den tatsächlich erforderlichen Funktionsargumenten zu definieren.
 
 function entferne_muell_am_ende(wort,	tmp) {
 	if( match( wort , "(.*)[.,:-]" , tmp ) ) {
