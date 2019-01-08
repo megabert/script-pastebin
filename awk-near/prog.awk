@@ -9,29 +9,29 @@
 
 BEGIN {
 	# max. Wort-Entfernung
-	max_abstand=10
+	max_abstand = 10
 }
 
 function entferne_muell_am_ende(wort,tmp) {
-	if(match(wort,"(.*)[.,:-]",tmp)) {
+	if( match( wort , "(.*)[.,:-]" , tmp ) ) {
 		return tmp[1]
 	}
 	return wort
 }
 
 function finde_naehestes(anker,suchwort,text,max_abstand,	abstand,regex,erg,zielwort) {
-	zielwort=""
-	for(abstand=1;abstand<=max_abstand;abstand++) {
+	zielwort = ""
+	for(abstand = 1 ; abstand <= max_abstand ; abstand++ ) {
 		# suche suchbegriff nach anker
-		regex=anker"[[:space:]]+([^[:space:]]+[[:space:]]+){0," abstand "}" suchwort
+		regex = anker "[[:space:]]+([^[:space:]]+[[:space:]]+){0," abstand "}" suchwort
 		if(match(text,regex,erg)) {
-			zielwort=erg[2]
+			zielwort = erg[2]
 			return zielwort
 		}
 		# suche suchbegriff vor anker
-		regex=suchwort "[[:space:]]+([^[:space:]]+[[:space:]]+){0," abstand "}" anker
+		regex = suchwort "[[:space:]]+([^[:space:]]+[[:space:]]+){0," abstand "}" anker
 		if(match(text,regex,erg)) {
-			zielwort=erg[1]
+			zielwort = erg[1]
 			return zielwort
 		}
 	}
@@ -44,7 +44,7 @@ function pruefe_block(zeilen,email,orte_regex,	gesamt,trail_re,kat_regex) {
 
 	print "***pruefe block: *** " email 
 	gesamt = join(zeilen)
-	trail_re="[.,:-]?"
+	trail_re = "[.,:-]?"
 	#print gesamt
 	
 	# finde kategorie in Abstand 0 bis max_abstand
@@ -61,17 +61,17 @@ function altregex_aus_liste(liste,    regex,delim) {
 	regex="("
 	delim=""
 	for(element in liste) {
-		regex=regex""delim""element
-		delim="|"
+		regex = regex delim element
+		delim = "|"
 	}
-	regex=regex")"
+	regex = regex ")"
 	return regex
 }
 
 function join(zeilen,     gesamt,zeile) {
-	gesamt=""
+	gesamt = ""
 	for(nr in zeilen) {
-		gesamt=zeilen[nr]""gesamt
+		gesamt = zeilen[nr] gesamt
 	}
 	return gesamt
 }
@@ -84,14 +84,14 @@ function join(zeilen,     gesamt,zeile) {
 # FNR == NR: wenn geich, dann sind wir in der ersten Datei(orte!)
 # 
 FNR == NR {
-	orte[$1]=1
+	orte[$1] = 1
 	next
 } 
 
 # FNR == 1 trifft nur zu bei der 1. Zeile der 2. Datei(haupttext.txt), weil vorher ja mit 
 #          next immer wieder die Zeilenverarbeitung beendet wird
 FNR == 1 {
-	durchlauf=durchlauf+1
+	durchlauf = durchlauf+1
 	if(durchlauf==1) {
 		# nach dem lesen der Orte, orte-regex zusammenbasteln
 		orte_regex = altregex_aus_liste(orte) 
