@@ -12,7 +12,11 @@ BEGIN {
 	max_abstand = 10
 }
 
-function entferne_muell_am_ende(wort,tmp) {
+# ungewoehnlich, awk kennt eigentlich keine lokalen variablen. Deswegen der offizielle Umweg,
+# lokale Variablen zusätzlich im Bereich für Funktionsargumente, per Konvention mit Leerzeichen
+# getrennt zu definieren.
+
+function entferne_muell_am_ende(wort,	tmp) {
 	if( match( wort , "(.*)[.,:-]" , tmp ) ) {
 		return tmp[1]
 	}
@@ -37,7 +41,7 @@ function finde_naehestes(anker,suchwort,text,max_abstand,	abstand,regex,erg,ziel
 	}
 }
 
-function pruefe_block(zeilen,email,orte_regex,	gesamt,trail_re,kat_regex) {
+function pruefe_block(zeilen,email,orte_regex,		gesamt,trail_re,kat_regex) {
 
 	# die funktion sucht jetzt den Block nach den gewuenschten werten ab, ausgehend von der E-Mailadresse
 	# die nähesten werte (Stadt, Kategorie) bis zur maximalen Wortentfernung werden zurueckgegeben
