@@ -49,16 +49,18 @@ function kill_procs($over_users,$pidinfo) {
         $signal_list=[15,0,2,0,9];
         foreach($signal_list as $signal) {
                 $alive_processes=0;
+		#traverse all relevant pids
                 foreach($pidinfo as $pid => $data) {
-                        #mylog("checking to kill pid $pid");
+                        # check if the pid is owned by an over_user
                         if(array_key_exists($data["user"],$over_users)) {
-                                #mylog("checking if pid $pid of user ".$data["user"]." is alive");
+                                # check if the process is still alive
                                 if(process_is_alive($pid)) {
-                                $alive_processes++;
-                                        if($signal != 0) {
-                                                mylog("sending signal $signal to process $pid (pid is owned by ".$pidinfo[$pid]["user"]. " and uses ".$pidinfo[$pid]["mem_used"]." KB of memory)");
-                                                posix_kill($pid,$signal);
-                                        }
+					$alive_processes++;
+					# only send signal if != 0 (0 => placeholder for waiting time)
+					if($signal != 0) {
+						mylog("sending signal $signal to process $pid (pid is owned by ".$pidinfo[$pid]["user"]. " and uses ".$pidinfo[$pid]["mem_used"]." KB of memory)");
+						posix_kill($pid,$signal);
+					}
                                 }
                         }
                 }
