@@ -67,11 +67,12 @@ function kill_procs($over_users,$pidinfo) {
                 if($alive_processes==0) {
                         return;
                 }
-        sleep(10);
+        	sleep(10);
         }
 }
 
 function process_is_alive($pid) {
+		# kill with 0 does not send a signal, but only returns success if the process with the specified pid exists
                 return posix_kill($pid,0);
 }
 
