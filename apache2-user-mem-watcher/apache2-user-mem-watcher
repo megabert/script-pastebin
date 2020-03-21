@@ -87,7 +87,7 @@ function main($max_mem_per_user) {
 
 ## main program starts here
 
-$max_mem_per_user="1000000"; 
+$max_mem_per_user="1000000";  // -> 1 GB
 
 # only run 1000 times; avoid php memory leaks
 # # with 10 seconds pause this script runs for ~ 3 hours with a single run
