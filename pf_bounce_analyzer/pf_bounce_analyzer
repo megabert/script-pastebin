@@ -1,0 +1,158 @@
+#!/bin/bash
+
+print_mail_logs() {
+
+	{
+	zcat $(ls -tr /var/log/mail.log.*.gz)
+	xzcat $(ls -tr /var/log/mail.log.*.xz)
+	bzcat $(ls -tr /var/log/mail.log.*.bz2)
+	cat mail.log.1 mail.log.0 mail.log
+	} 2>/dev/null
+
+}
+
+analyze() {
+	gawk '
+
+	
+	!match($0,/status=bounced.*said: (([0-9][0-9][0-9])[ -].*)$/,captures) { next }
+
+	{
+	if(	$0 ~ /google.*550-5.1.1/ 					||
+	    	$0 ~ /User unknown in virtual (mailbox|alias) table/ 		||
+		$0 ~ /is not a valid user/					||
+		$0 ~ /Recipient address rejected/				||
+		$0 ~ /This user doesn.t have a [^ ]+ account/			||
+		$0 ~ /Unknown ([Uu]ser|[rR]ecipient)/				||
+		$0 ~ /no mailbox here by that name/				||
+		$0 ~ /No Such User Here/					||
+		$0 ~ /No such mailbox/						||
+		$0 ~ /User [Uu]nknown/						||
+		$0 ~ /account or domain may not exist/				||
+		$0 ~ /Recipient does not exist/					||
+		$0 ~ /Address rejected/						||
+		$0 ~ /No such user/						||
+		$0 ~ /Bad destination mailbox address/				||
+		$0 ~ /mailbox unavailable/					||
+		$0 ~ /no mailbox by that name is currently available/		||
+		$0 ~ /The email account that you tried to reach does not exist/	||
+		$0 ~ /Unknown account /						||
+		$0 ~ /No such address/						||
+		$0 ~ /User no(t)? found./					||
+		$0 ~ /Recipient not found./					||
+		$0 ~ /Email address could not be found/				||
+		$0 ~ /Adresse d au moins un destinataire invalide/		||
+		$0 ~ /Non-existent email address/				||
+		$0 ~ /Not a valid recipient/			) {
+		reasons["user unknown"]=reasons["user unknown"]+1
+		next
+	}
+	if(	$0 ~ /Command not allowed/ 			) {
+		reasons["command not allowed"]=reasons["command not allowed"]+1
+		next
+	}
+
+	if(	$0 ~ /No SPAM please/						||
+		$0 ~ /Spam message rejected/					||
+		$0 ~ /The content of this message looked like spam/		||
+		$0 ~ /Message rejected under suspicion of SPAM/			||
+		$0 ~ /High probability of spam/					||
+		$0 ~ /Message contained spam content/				||
+		$0 ~ /Content analisis tool detect spam/			||
+		$0 ~ /Rejected by spam filter/					||
+		$0 ~ /REJECT spam/						||
+		$0 ~ /pam message rejected/					||
+		$0 ~ /Message classified as spam/				||
+		$0 ~ /content judged to be spam /				||
+		$0 ~ /domain is listed in Spamhaus/				||
+		$0 ~ /Message content not allowed/				||
+		$0 ~ /likely unsolicited mail/					||
+		$0 ~ /Mail contains unique UBE\/UCE/				||
+		$0 ~ /A URL in this email.*is listed on/) {
+		reasons["spam"]=reasons["spam"]+1
+		next
+	}
+
+	if(	$0 ~ /allout verification fail/) {
+		reasons["callout verification failure"]=reasons["callout verification failure"]+1
+		next
+	}
+
+	if(	$0 ~ /ailbox size limit exceeded/				||
+		$0 ~ /mail size or count over quota/				||
+		$0 ~ /User is over quota/					||
+		$0 ~ /exceeded storage allocation/) {
+		reasons["mailbox full"]=reasons["mailbox full"]+1
+		next
+	}
+
+	if(	$0 ~ /This message contains( a)? virus/				||
+		$0 ~ /content presents a potential.*security issue/) {
+		reasons["virus"]=reasons["virus"]+1
+		next
+	}
+
+	if(	$0 ~ /onsidered( as)? spam or virus/) { 
+		reasons["spam or virus"]=reasons["spam or virus"]+1
+		next
+	}
+
+
+	if(	$0 ~ /The email account that you tried to reach is disabled/	||
+		$0 ~ /This mailbox is disabled/					||
+		$0 ~ /Mailaddress is administratively disabled/		) {
+		reasons["account disabled"]=reasons["account disabled"]+1
+		next
+	}
+
+	if(	$0 ~ /Message not accepted for policy reasons./			||
+		$0 ~ /Email not accepted for policy reasons/			||
+		$0 ~ /Reject due to policy restrictions/ ) {
+		reasons["other policy reason"]=reasons["other policy reason"]+1
+		next
+	}
+
+	if(	$0 ~ /[Uu]nroute?able address/) {
+		reasons["target mail address error"]=reasons["target mail address error"]+1
+		next
+	}
+
+	if(	$0 ~ /Your IP address is blacklisted./				||
+		$0 ~ /Blacklisted by/) {
+
+		reasons["server ip blacklisted"]=reasons["server ip blacklisted"]+1
+		next
+	}
+
+	if(	$0 ~ /Relay access denied/					||
+		$0 ~ /relaying not allowed/					||
+		$0 ~ /relaying denied/						||
+		$0 ~ /relay not permitted/) {
+		reasons["relay denied"]=reasons["relay denied"]+1
+		next
+	}
+
+	if(	$0 ~ /Missing DNS PTR record/) {
+		reasons["missing ptr"]=reasons["missing ptr"]+1
+		next
+	}
+
+	if(	$0 ~ /very low reputation of/) {
+		reasons["low reputation"]=reasons["low reputation"]+1
+		next
+	}
+
+	reasons["unclassified"]=reasons["unclassified"]+1
+	
+	}
+
+	END {
+		for(r in reasons) {
+			printf "%-30s %d\n",r,reasons[r]
+		}
+	}
+	'
+}
+
+print_mail_logs | analyze | sort -k 1.30n  |tac 
+
