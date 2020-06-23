@@ -1,0 +1,91 @@
+#!/bin/bash
+
+POLL_INTERVAL=10
+TIMEOUT=9
+TARGET_HOST="$1"
+PROTOCOL="${URL%%//*}//"
+STATE=""
+STATE_NEW=""
+STATE_CHANGE_TIME=""
+
+export POLL_INTERVALL TIMEOUT URL IP TARGET_HOST PROTOCOL STATE STATE_NEW STATE_CHANGE_TIME
+
+check_requisites() {
+
+        local ERROR=0
+        #if ! type curl &>/dev/null; then
+        #       out "ERROR: no curl. Please install curl to use this program"
+        #       ERROR=1
+        #fi
+#       if ! type bc &>/dev/null; then
+#               out "ERROR: no bc. Please install bc to use this program"
+#               ERROR=1
+#       fi
+#       if [ $# -lt 2 ] ; then
+#               echo -e  "\nUsage: $(basename $0) <URL to check> <IP of Webserver>\n"
+#               ERROR=1
+#       fi
+
+        [ $ERROR == 1 ] && exit 1
+}
+
+out() { /bin/echo -e "$(date) : $*"; }
+
+get_time() { date +"%s"; }
+
+check_site() {
+
+        local RC=""
+        if ping -c 3 -q -w $TIMEOUT $TARGET_HOST &>/dev/null;then
+                RC=0
+        else
+                RC=1
+        fi
+        return $RC
+
+
+}
+
+initial_state() {
+        check_site
+        STATE="$?"
+        local STATE_TEXT=""
+        [ $STATE == 0 ] && STATE_TEXT=OK || STATE_TEXT=FAIL
+        out "Inital state: $STATE_TEXT"
+        STATE_CHANGE_TIME=$(get_time)
+}
+
+run_check() {
+
+        while :;do 
+                check_site
+                STATE_NEW=$?
+                #out "$STATE $STATE_NEW"
+                if [ $STATE != $STATE_NEW ]; then
+                        if [ $STATE_NEW == 0 ] ; then 
+                                STATE_TEXT=OK
+                                STATE_TEXT_PREV="DOWN"
+                        else
+                                STATE_TEXT=FAIL
+                                STATE_TEXT_PREV="UP"
+                        fi
+                        CURRENT_TIME=$(get_time)
+                        DIFF_TIME="$( expr $CURRENT_TIME - $STATE_CHANGE_TIME)"
+                        STATE_CHANGE_TIME="$CURRENT_TIME"
+                        # [[ $DIFF_TIME =~ ^\. ]] && DIFF_TIME="0$DIFF_TIME"
+                        [ "$STATE_TEXT_PREV" == "DOWN" ] && DOWNTIME_NOTICE="(after ${STATE_TEXT_PREV}TIME of $DIFF_TIME seconds)" || DOWNTIME_NOTICE=""
+                        out "Statechange to $STATE_TEXT $DOWNTIME_NOTICE"
+                        STATE=$STATE_NEW
+                fi
+                sleep $POLL_INTERVAL
+
+        done
+
+}
+
+check_requisites "$@"
+out ""
+out "Checking $TARGET_HOST every $POLL_INTERVAL Seconds timeout $TIMEOUT seconds"
+out ""
+initial_state
+run_check
