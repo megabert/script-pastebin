@@ -1,14 +1,15 @@
 #!/bin/bash
 
-POLL_INTERVAL=10
-TIMEOUT=9
+POLL_INTERVAL=1
+TIMEOUT=3
 TARGET_HOST="$1"
 PROTOCOL="${URL%%//*}//"
 STATE=""
 STATE_NEW=""
 STATE_CHANGE_TIME=""
+STATE_REPEAT_INTERVAL=3600
 
-export POLL_INTERVALL TIMEOUT URL IP TARGET_HOST PROTOCOL STATE STATE_NEW STATE_CHANGE_TIME
+export POLL_INTERVALL TIMEOUT URL IP TARGET_HOST PROTOCOL STATE STATE_NEW STATE_CHANGE_TIME STATE_REPEAT_INTERVAL
 
 check_requisites() {
 
@@ -29,7 +30,12 @@ check_requisites() {
         [ $ERROR == 1 ] && exit 1
 }
 
-out() { /bin/echo -e "$(date) : $*"; }
+out() { 
+
+        /bin/echo -e "$(date) : $*"
+        LAST_MESSAGE="$(date +%s)"
+
+}
 
 get_time() { date +"%s"; }
 
@@ -44,6 +50,12 @@ check_site() {
         return $RC
 
 
+}
+
+last_message_age() {
+
+        NOW=$(date +%s)
+        echo $(( $NOW - $LAST_MESSAGE ))
 }
 
 initial_state() {
@@ -76,6 +88,11 @@ run_check() {
                         [ "$STATE_TEXT_PREV" == "DOWN" ] && DOWNTIME_NOTICE="(after ${STATE_TEXT_PREV}TIME of $DIFF_TIME seconds)" || DOWNTIME_NOTICE=""
                         out "Statechange to $STATE_TEXT $DOWNTIME_NOTICE"
                         STATE=$STATE_NEW
+                else
+                        [ $STATE_NEW == 0 ] && STATE_TEXT=OK || STATE_TEXT=DOWN
+                        if [ $(last_message_age) -gt $STATE_REPEAT_INTERVAL ] ; then
+                                out "state still $STATE_TEXT"
+                        fi
                 fi
                 sleep $POLL_INTERVAL
 
