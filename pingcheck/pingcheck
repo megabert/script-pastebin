@@ -11,25 +11,6 @@ STATE_REPEAT_INTERVAL=3600
 
 export POLL_INTERVALL TIMEOUT URL IP TARGET_HOST PROTOCOL STATE STATE_NEW STATE_CHANGE_TIME STATE_REPEAT_INTERVAL
 
-check_requisites() {
-
-        local ERROR=0
-        #if ! type curl &>/dev/null; then
-        #       out "ERROR: no curl. Please install curl to use this program"
-        #       ERROR=1
-        #fi
-#       if ! type bc &>/dev/null; then
-#               out "ERROR: no bc. Please install bc to use this program"
-#               ERROR=1
-#       fi
-#       if [ $# -lt 2 ] ; then
-#               echo -e  "\nUsage: $(basename $0) <URL to check> <IP of Webserver>\n"
-#               ERROR=1
-#       fi
-
-        [ $ERROR == 1 ] && exit 1
-}
-
 out() { 
 
         /bin/echo -e "$(date) : $*"
@@ -100,7 +81,6 @@ run_check() {
 
 }
 
-check_requisites "$@"
 out ""
 out "Checking $TARGET_HOST every $POLL_INTERVAL Seconds timeout $TIMEOUT seconds"
 out ""
