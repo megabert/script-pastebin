@@ -21,8 +21,6 @@ pdns_target_server=""
 
 # --- global variables end ---
 
-SELF="$(basename $0)"
-
 export pdns_api_base pdns_api_secret pdns_api_host all_zones pdns_target_server log_file
 
 mylog()  { printf '%(%Y/%m/%d-%H:%M:%S)T %s\n' "-1" "$*" >>$log_file; }
