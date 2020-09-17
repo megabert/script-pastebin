@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+#	Manage DNS-Records with PowerDNS-API from command line
+#
+#
+
 export SELF="$(basename $0)"
 
 [ -d $HOME/.config 			] || mkdir $HOME/.config
