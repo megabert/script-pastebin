@@ -1,7 +1,7 @@
 #!/bin/bash
 
 POLL_INTERVAL=1
-TIMEOUT=3
+TIMEOUT=6
 TARGET_HOST="$1"
 PROTOCOL="${URL%%//*}//"
 STATE=""
@@ -29,7 +29,6 @@ check_site() {
                 RC=1
         fi
         return $RC
-
 
 }
 
