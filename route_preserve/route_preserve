@@ -8,19 +8,6 @@
 #
 #
 
-if [ $# -lt 2 ] || [ $1 != "preserve" ] && [ $1 != "remove" ]; then
-        echo 
-        echo "$(basename $0): preserve/remove default route for a specific ip"
-        echo
-        echo "Usage: $(basename $0) preserve/remove <target-ip>"
-        echo
-        echo "  preserve/remove:        set a host route or remove a host route for the specific ip"
-        echo
-        echo "  target-ip:              ip for which default route should be removed/preserved"
-        echo
-        exit 1
-fi
-
 my_remove_route() {
 
         local ip="$1"
@@ -60,6 +47,21 @@ main() {
                 esac
         done
 }
+
+# --- program starts here --- 
+
+if [ $# -lt 2 ] || [ $1 != "preserve" ] && [ $1 != "remove" ]; then
+        echo 
+        echo "$(basename $0): preserve/remove default route for a specific ip"
+        echo
+        echo "Usage: $(basename $0) preserve/remove <target-ip>"
+        echo
+        echo "  preserve/remove:        set a host route or remove a host route for the specific ip"
+        echo
+        echo "  target-ip:              ip for which default route should be removed/preserved"
+        echo
+        exit 1
+fi
 
 main "$@"
 
