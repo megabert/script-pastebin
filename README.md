@@ -1,1 +1,1 @@
-Git-Repo for spontaneously created scripts
+Moved to https://codeberg.org/megabert/script-pastebin
